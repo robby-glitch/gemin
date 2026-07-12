@@ -81,7 +81,12 @@ async function runEngineCycle() {
     // 1. Fetch latest feeds
     const feeds: { [key in InstrumentName]?: any } = {};
     for (const inst of instruments) {
-      feeds[inst] = await getInstrumentFeed(inst);
+      try {
+        feeds[inst] = await getInstrumentFeed(inst);
+      } catch (err) {
+        console.error(`[Engine] Failed to load feed for ${inst}:`, err);
+        feeds[inst] = null;
+      }
     }
 
     // 2. Pre-calculate cross-index siblings stretch for V6/V3 check
@@ -184,6 +189,7 @@ async function runEngineCycle() {
         ceHigh,
         peHigh,
         optionHighsLookback: lookback,
+        isSimulation: !!settings.simulationMode,
       });
 
       activeStates[inst] = newState;
